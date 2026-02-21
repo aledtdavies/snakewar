@@ -214,7 +214,7 @@ input[type="text"]:focus {
 }
 
 #main-menu {
-  background: url('assets/title-bg.png') no-repeat center 25%;
+  background: url('assets/title-bg.png?v=4') no-repeat center 25%;
   background-size: contain;
   background-color: #000;
 }

@@ -92,13 +92,13 @@ export class Game {
             const botSnake = new Snake(bx, by, false, randomName(), skins[Math.floor(Math.random() * skins.length)]);
 
             // Randomize bot starting length based on level
-            const baseGrowth = this.level === 1 ? 20 : 60;
-            const randomGrowth = Math.floor(Math.random() * 30);
+            const baseGrowth = 20 * this.level;
+            const randomGrowth = Math.floor(Math.random() * 30 * this.level);
             botSnake.targetLength += baseGrowth + randomGrowth;
             botSnake.length += baseGrowth + randomGrowth;
 
             this.snakes.push(botSnake);
-            this.bots.push(new AI(botSnake));
+            this.bots.push(new AI(botSnake, this.level));
         }
     }
 
@@ -107,19 +107,11 @@ export class Game {
         this.state = 'LEVEL_UP';
 
         // Base Configuration Changes
-        let addedBots = 0;
+        CONFIG.ARENA_SIZE = 5000 + (this.level - 1) * 1500;
+        CONFIG.SCORE_MULTIPLIER = 1.0 + (this.level - 1) * 1.0;
 
-        if (this.level === 2) {
-            CONFIG.ARENA_SIZE = 6000;
-            CONFIG.SCORE_MULTIPLIER = 2.0;
-            const targetBots = 40;
-            if (this.bots.length < targetBots) addedBots = targetBots - this.bots.length;
-        } else if (this.level === 3) {
-            CONFIG.ARENA_SIZE = 8000;
-            CONFIG.SCORE_MULTIPLIER = 3.0;
-            const targetBots = 50;
-            if (this.bots.length < targetBots) addedBots = targetBots - this.bots.length;
-        }
+        const targetBots = 30 + (this.level - 1) * 10;
+        let addedBots = targetBots - this.bots.length;
 
         if (addedBots > 0) {
             this._spawnBots(addedBots);
@@ -139,8 +131,6 @@ export class Game {
     }
 
     spawnFood() {
-        if (this.food.length >= CONFIG.MAX_FOOD_ORBS) return;
-
         // Collect powerup counts
         const numStars = this.food.filter(f => f.isStar).length;
         const numShields = this.food.filter(f => f.isShield).length;
@@ -160,8 +150,9 @@ export class Game {
         else if (rand >= 0.02 && rand < 0.035 && numMagnets < CONFIG.MAX_MAGNETS) {
             this.food.push(new Magnet(Math.random() * CONFIG.ARENA_SIZE, Math.random() * CONFIG.ARENA_SIZE));
         }
+
         // Standard food
-        else {
+        if (this.food.length < CONFIG.MAX_FOOD_ORBS) {
             this.food.push(new Food(
                 Math.random() * CONFIG.ARENA_SIZE,
                 Math.random() * CONFIG.ARENA_SIZE
@@ -222,11 +213,10 @@ export class Game {
             this.hud.updateScore(this.player.length);
             this.hud.updateBoostPrompt(this.player.length >= CONFIG.MIN_BOOST_LENGTH);
 
-            // Check for Level Up
-            if (this.level === 1 && this.player.length >= 2500) {
-                this.triggerLevelUp(2);
-            } else if (this.level === 2 && this.player.length >= 20000) {
-                this.triggerLevelUp(3);
+            // Check for Infinite Level Up
+            const nextLevelThreshold = this.level * this.level * 2500;
+            if (this.player.length >= nextLevelThreshold) {
+                this.triggerLevelUp(this.level + 1);
             }
         }
 

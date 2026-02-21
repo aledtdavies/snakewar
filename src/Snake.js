@@ -36,6 +36,7 @@ export class Snake {
         // Current derived stats
         this.radius = CONFIG.HEAD_RADIUS;
         this.speed = CONFIG.BASE_SPEED;
+        this.turnSpeed = CONFIG.TURN_SPEED;
         this.superTime = 0; // seconds remaining for star powerup
         this.shieldTime = 0; // seconds remaining for shield
         this.magnetTime = 0; // seconds remaining for magnet
@@ -111,7 +112,7 @@ export class Snake {
         while (diff < -Math.PI) diff += Math.PI * 2;
 
         // Cap turn speed
-        const maxTurn = CONFIG.TURN_SPEED * dt;
+        const maxTurn = this.turnSpeed * dt;
         if (Math.abs(diff) <= maxTurn) {
             this.angle = this.targetAngle;
         } else {

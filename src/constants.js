@@ -15,13 +15,13 @@ export const CONFIG = {
     // Sizing
     HEAD_RADIUS: 12,
     BODY_RADIUS: 10,
-    MAX_RADIUS: 20,            // As snake grows, scale it up slightly
+    MAX_RADIUS: 100,           // Cap at 100 so giant snakes look monstrous
     SEGMENT_SPACING: 8,        // Distance between segment centers
 
     // Growth & Food
     INITIAL_LENGTH: 20,
     FOOD_VALUE: 1,             // Growth per standard food orb
-    GROWTH_SCALE: 0.05,        // How much radius increases per unit of length
+    GROWTH_SCALE: 0.15,        // How much radius increases per unit of length
 
     // Economy / Boost
     BOOST_COST_RATE: 2.5,      // Length lost per second while boosting

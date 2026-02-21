@@ -1,16 +1,19 @@
 import { CONFIG } from './constants.js';
 
 export class AI {
-    constructor(snake) {
+    constructor(snake, level = 1) {
         this.snake = snake;
         this.state = 'ROAM'; // ROAM, SEEK_FOOD, ATTACK, FLEE
         this.target = null;
         this.timer = 0;
 
-        // AI configuration parameters (to build different difficulties later)
-        this.visionRadius = 400;     // How far bot can see
-        this.reactionDelay = 0.2;    // Reaction time per decision logic loop
-        this.aggression = 0.5;       // Likelihood to attack smaller snakes
+        // AI configuration parameters (Dynamic Difficulty)
+        this.visionRadius = 400 + ((level - 1) * 200);             // How far bot can see scales infinitely
+        this.reactionDelay = Math.max(0.05, 0.2 - (level * 0.02)); // Reaction time gets faster
+        this.aggression = Math.min(0.95, 0.5 + (level * 0.08));    // Likelihood to attack scales up
+
+        // Scale snake's physical turning ability by level
+        this.snake.turnSpeed = CONFIG.TURN_SPEED + ((level - 1) * 0.5);
     }
 
     update(dt, game, snakes, foods) {
