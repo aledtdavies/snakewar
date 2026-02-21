@@ -130,10 +130,10 @@ export function checkCollisions(game) {
 
                 // If s1 (head) hits s2's body
                 if (s2Super && !s1Super) {
-                    // s2 is super, s1 dies touching it
+                    // s2 is super, cut s1 down to size! (lose 50% length)
                     if (!s1Shield) {
-                        if (s2.isPlayer && !snakesToKill.has(s1)) { game.playerKills++; audioManager.playSFX('eat_snake'); }
-                        snakesToKill.add(s1);
+                        s1.targetLength = Math.max(CONFIG.INITIAL_LENGTH, Math.floor(s1.length / 2));
+                        s1.angle += Math.PI; // bounce off safely
                     }
                 } else if (!s1Super && s1.length <= s2.length) {
                     // Normal rules: s1 is smaller or equal -> s1 dies

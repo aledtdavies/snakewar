@@ -44,6 +44,7 @@ export class Game {
         this.level = 1;
         CONFIG.ARENA_SIZE = 4000;
         CONFIG.SCORE_MULTIPLIER = 1.0;
+        CONFIG.COLORS.ARENA_BG = '#0a0a1a';
 
         // Initial Food spwan
         for (let i = 0; i < (CONFIG.MAX_FOOD_ORBS * this.level); i++) {
@@ -109,6 +110,7 @@ export class Game {
         // Base Configuration Changes
         CONFIG.ARENA_SIZE = 5000 + (this.level - 1) * 1500;
         CONFIG.SCORE_MULTIPLIER = 1.0 + (this.level - 1) * 1.0;
+        CONFIG.COLORS.ARENA_BG = `hsl(${(this.level - 1) * 50}, 50%, 15%)`;
 
         const targetBots = 30 + (this.level - 1) * 10;
         let addedBots = targetBots - this.bots.length;
@@ -210,8 +212,7 @@ export class Game {
             const targetAngle = this.input.getAngle();
             this.player.update(dt, targetAngle, this.input.isBoosting);
 
-            this.hud.updateScore(this.player.length);
-            this.hud.updateMultiplier(CONFIG.SCORE_MULTIPLIER);
+            this.hud.updateScore(this.player.score);
             this.hud.updateBoostPrompt(this.player.length >= CONFIG.MIN_BOOST_LENGTH);
 
             // Check for Infinite Level Up

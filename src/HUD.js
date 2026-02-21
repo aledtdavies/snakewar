@@ -1,7 +1,6 @@
 export class HUD {
     constructor() {
         this.scoreValue = document.getElementById('score-value');
-        this.multiplierValue = document.getElementById('multiplier-value');
         this.leaderboardList = document.getElementById('leaderboard-list');
         this.boostPrompt = document.getElementById('boost-prompt');
 
@@ -124,11 +123,8 @@ export class HUD {
         title.textContent = `LEVEL ${level}`;
 
         const desc = this.levelUpScreen.querySelector('p');
-        if (level === 2) {
-            desc.textContent = "ARENA EXPANDED. MULTIPLIER x2.0";
-        } else if (level === 3) {
-            desc.textContent = "EXTREME ARENA. MULTIPLIER x3.0";
-        }
+        // dynamically display the correct multiplier from CONFIG
+        desc.textContent = `ARENA EXPANDED. MULTIPLIER x${window.CONFIG?.SCORE_MULTIPLIER?.toFixed(1) || level.toFixed(1)}`;
 
         const btn = document.getElementById('btn-continue');
         // Remove previous listener if any by cloning
@@ -146,12 +142,6 @@ export class HUD {
         this.scoreValue.textContent = Math.floor(score);
     }
 
-    updateMultiplier(multiplier) {
-        if (this.multiplierValue) {
-            this.multiplierValue.textContent = `${multiplier}x`;
-        }
-    }
-
     updateBoostPrompt(canBoost) {
         if (canBoost) {
             this.boostPrompt.classList.add('show');
@@ -161,9 +151,9 @@ export class HUD {
     }
 
     updateLeaderboard(snakes) {
-        // Sort snakes by length (descending)
+        // Sort snakes by score (descending)
         const topSnakes = [...snakes]
-            .sort((a, b) => b.length - a.length)
+            .sort((a, b) => b.score - a.score)
             .slice(0, 5); // Take top 5
 
         this.leaderboardList.innerHTML = '';
@@ -180,7 +170,7 @@ export class HUD {
 
             const scoreSpan = document.createElement('span');
             scoreSpan.className = 'lb-score';
-            scoreSpan.textContent = Math.floor(snake.length);
+            scoreSpan.textContent = Math.floor(snake.score);
 
             li.appendChild(nameSpan);
             li.appendChild(scoreSpan);
