@@ -1,6 +1,7 @@
 export class HUD {
     constructor() {
         this.scoreValue = document.getElementById('score-value');
+        this.multiplierValue = document.getElementById('multiplier-value');
         this.leaderboardList = document.getElementById('leaderboard-list');
         this.boostPrompt = document.getElementById('boost-prompt');
 
@@ -143,6 +144,12 @@ export class HUD {
 
     updateScore(score) {
         this.scoreValue.textContent = Math.floor(score);
+    }
+
+    updateMultiplier(multiplier) {
+        if (this.multiplierValue) {
+            this.multiplierValue.textContent = `${multiplier}x`;
+        }
     }
 
     updateBoostPrompt(canBoost) {

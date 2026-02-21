@@ -200,6 +200,13 @@ export class Renderer {
             for (let i = snake.segments.length - 1; i >= 1; i--) {
                 const seg = snake.segments[i];
 
+                // Culling: Skip drawing off-screen segments entirely
+                const cullMargin = snake.radius * 3;
+                if (seg.x < camX - cullDistX - cullMargin || seg.x > camX + cullDistX + cullMargin ||
+                    seg.y < camY - cullDistY - cullMargin || seg.y > camY + cullDistY + cullMargin) {
+                    continue;
+                }
+
                 // Taper tail slightly
                 const tailFactor = 1 - (i / snake.segments.length) * 0.4; // Taper down to 60% size
                 const radius = (snake.radius * 0.9) * tailFactor;

@@ -163,17 +163,17 @@ export class Game {
     killSnake(snake) {
         const segments = snake.die();
 
-        // Drop food for each tail segment
-        // To prevent massive lag on huge snake death, we might cap the drops
-        const dropCount = Math.min(segments.length, 100);
+        // Drop high-value food instead of hundreds of tiny foods to preserve framerate
+        const dropCount = Math.min(segments.length, 15);
         const step = Math.max(1, Math.floor(segments.length / dropCount));
+        const valuePerDrop = Math.max(3, Math.floor(segments.length / dropCount));
 
         for (let i = 0; i < segments.length; i += step) {
             const seg = segments[i];
             // Scatter slightly
-            const scatterX = (Math.random() - 0.5) * 20;
-            const scatterY = (Math.random() - 0.5) * 20;
-            this.food.push(new Food(seg.x + scatterX, seg.y + scatterY, 3, true));
+            const scatterX = (Math.random() - 0.5) * 40;
+            const scatterY = (Math.random() - 0.5) * 40;
+            this.food.push(new Food(seg.x + scatterX, seg.y + scatterY, valuePerDrop, true));
         }
 
         if (snake.isPlayer) {
@@ -211,6 +211,7 @@ export class Game {
             this.player.update(dt, targetAngle, this.input.isBoosting);
 
             this.hud.updateScore(this.player.length);
+            this.hud.updateMultiplier(CONFIG.SCORE_MULTIPLIER);
             this.hud.updateBoostPrompt(this.player.length >= CONFIG.MIN_BOOST_LENGTH);
 
             // Check for Infinite Level Up
