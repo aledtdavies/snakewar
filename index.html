@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SnakeWar</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Preload fonts to avoid flash of unstyled text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@700;900&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <!-- Main Game Container -->
+  <div id="app">
+    <!-- Hidden by default, shown when playing -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- UI Layer rendered on top of canvas -->
+    <div id="ui-layer">
+
+      <!-- HUD (Heads Up Display) shown during gameplay -->
+      <div id="hud" class="hidden">
+        <div class="hud-top">
+          <div class="stat-box score-box">
+            <span class="label">Length</span>
+            <span id="score-value" class="value">0</span>
+          </div>
+        </div>
+        <div class="hud-bottom">
+          <div id="leaderboard" class="glass-panel">
+            <h3>Leaderboard</h3>
+            <ol id="leaderboard-list">
+              <!-- Populated dynamically -->
+            </ol>
+          </div>
+          <div id="minimap-container" class="glass-panel">
+            <canvas id="minimap-canvas"></canvas>
+          </div>
+        </div>
+        <!-- Boost prompt overlay -->
+        <div id="boost-prompt">Hold [SPACE] to Boost</div>
+      </div>
+
+      <!-- Mobile Boost Button -->
+      <button id="btn-boost-mobile" class="hidden">⚡ BOOST</button>
+
+      <!-- Main Menu -->
+      <div id="main-menu" class="screen active">
+        <div class="logo-container">
+          <!-- Title text removed in favor of background image -->
+        </div>
+
+        <div class="main-menu-layout">
+          <!-- All Time Leaderboard -->
+          <div id="global-leaderboard" class="glass-panel">
+            <h3>Leaderboard</h3>
+            <ol id="global-leaderboard-list">
+              <!-- Populated from localStorage -->
+            </ol>
+            <button id="btn-clear-scores" class="btn-secondary"
+              style="margin-top:15px; font-size: 0.8rem; padding: 5px 10px;">Clear Scores</button>
+          </div>
+
+          <div class="menu-content glass-panel">
+            <input type="text" id="player-name" placeholder="Enter your name" value="Player1" maxlength="15"
+              autocomplete="off" />
+
+            <div class="skin-selector">
+              <p>Select Skin:</p>
+              <div class="skin-options">
+                <div class="skin-option selected" data-skin="neon-cyan"
+                  style="background: linear-gradient(135deg, #00f0ff, #0055ff);"></div>
+                <div class="skin-option" data-skin="neon-magenta"
+                  style="background: linear-gradient(135deg, #ff00aa, #aa00ff);"></div>
+                <div class="skin-option" data-skin="toxic-green"
+                  style="background: linear-gradient(135deg, #39ff14, #00aa00);"></div>
+                <div class="skin-option" data-skin="solar-flare"
+                  style="background: linear-gradient(135deg, #ffaa00, #ff0000);"></div>
+              </div>
+            </div>
+
+            <button id="btn-play" class="btn-primary">PLAY</button>
+            <div class="controls-guide">
+              <p><span>[TOUCH/MOUSE]</span> Steer</p>
+              <p><span>[BUTTON/SPACE]</span> Boost</p>
+            </div>
+          </div>
+
+          <!-- Power-up Guide -->
+          <div id="powerup-guide" class="glass-panel">
+            <h3>Power-ups</h3>
+            <div class="guide-item">
+              <div class="icon star-icon"></div>
+              <div class="text">
+                <span class="p-name star">STAR</span>
+                <span class="p-desc">Invincibility + Eat Anything</span>
+              </div>
+            </div>
+            <div class="guide-item">
+              <div class="icon shield-icon"></div>
+              <div class="text">
+                <span class="p-name shield">SHIELD</span>
+                <span class="p-desc">Protect from Collisions</span>
+              </div>
+            </div>
+            <div class="guide-item">
+              <div class="icon magnet-icon"></div>
+              <div class="text">
+                <span class="p-name magnet">MAGNET</span>
+                <span class="p-desc">Attract Nearby Food</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Over Screen -->
+      <div id="game-over-screen" class="screen hidden">
+        <div class="glass-panel game-over-panel">
+          <div class="stats-panel">
+            <div class="stat-row">
+              <span>Final Length:</span>
+              <span id="final-score" class="value highlight">0</span>
+            </div>
+            <div class="stat-row" id="pb-row" style="color: var(--glow-cyan); font-weight: bold; display: none;">
+              <span>NEW PERSONAL BEST!</span>
+            </div>
+            <div class="stat-row">
+              <span>Snakes Eliminated:</span>
+              <span id="kills" class="value">0</span>
+            </div>
+            <div class="stat-row">
+              <span>Time Alive:</span>
+              <span id="time-alive" class="value">0:00</span>
+            </div>
+          </div>
+          <div class="game-over-leaderboard">
+            <h4>Snake Warriors</h4>
+            <ol id="game-over-leaderboard-list"></ol>
+          </div>
+          <button id="btn-play-again" class="btn-primary">PLAY AGAIN</button>
+        </div>
+      </div>
+
+      <!-- Level Up Screen -->
+      <div id="level-up-screen" class="screen hidden">
+        <div class="glass-panel level-up-panel">
+          <h2 class="neon-text" id="level-up-title" style="font-size: 3rem; margin-bottom: 10px;">LEVEL 2</h2>
+          <p style="font-family: var(--font-title); font-size: 1.2rem; margin-bottom: 20px;">ARENA EXPANDED. MULTIPLIER
+            x2.0</p>
+          <button id="btn-continue" class="btn-primary">CONTINUE</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+
+</html>
