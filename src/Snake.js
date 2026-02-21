@@ -66,9 +66,10 @@ export class Snake {
         }
 
         // Calculate radius based on length
-        // Grow slightly as you get longer
+        // Growth is bounded relative to the arena size (so you don't instantly fill the screen)
+        const maxDynamicRadius = CONFIG.ARENA_SIZE * 0.04;
         this.radius = Math.min(
-            CONFIG.MAX_RADIUS,
+            maxDynamicRadius,
             CONFIG.HEAD_RADIUS + (this.length * CONFIG.GROWTH_SCALE)
         );
 
