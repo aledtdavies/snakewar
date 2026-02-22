@@ -199,11 +199,17 @@ export class Game {
         this.deadCameraX = this.player.x;
         this.deadCameraY = this.player.y;
 
-        this.hud.showGameOver(this.player.length, this.playerKills, this.timeAlive, this.player.name);
-
         // Hide mobile boost button
         const mobBtn = document.getElementById('btn-boost-mobile');
         if (mobBtn) mobBtn.classList.add('hidden');
+
+        // Allow players to watch their snake die for 500ms before abruptly cutting to the score screen
+        setTimeout(() => {
+            this.hud.showGameOver(this.player.length, this.playerKills, this.timeAlive, this.player.name);
+
+            // Play Game Over SFX instantly as the screen appears
+            audioManager.playSFX('game_over');
+        }, 500);
     }
 
     update(dt) {

@@ -190,14 +190,14 @@ export class Snake {
         } else if (foodOrb.isDrop) {
             // Player ate another snake's dropped segment
             if (this.isPlayer) {
-                audioManager.playSFX('eat', 0.5);
+                audioManager.playSFX('eat', 1.5);
             } else if (foodOrb.fromPlayer) {
                 // A bot snake ate a segment that just dropped from the player's body
                 audioManager.playSFX('enemy_eat');
             }
         } else {
             // Standard food
-            if (this.isPlayer) audioManager.playSFX('eat', 0.5);
+            if (this.isPlayer) audioManager.playSFX('eat', 1.5);
         }
 
         // We don't push a new segment immediately.
