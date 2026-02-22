@@ -46,7 +46,7 @@ export class Snake {
         this.lastY = y;
     }
 
-    update(dt, inputAngle, isBoosting) {
+    update(dt, inputAngle, isBoosting, currentLevel = 1) {
         if (!this.alive) return;
 
         this.lastX = this.x;
@@ -66,8 +66,12 @@ export class Snake {
         }
 
         // Calculate radius based on length
-        // Growth is bounded relative to the arena size (so you don't instantly fill the screen)
-        const maxDynamicRadius = CONFIG.ARENA_SIZE * 0.04;
+        // Growth is bounded relative to the screen size (so you don't instantly fill the screen)
+        // Cap the maximum radius to 8% of the user's physical screen width.
+        // We DIVIDE by the current zoom factor (based on level) so the physical on-screen size 
+        // respects the zoomed-out camera instead of growing larger to compensate!
+        const levelZoomOffset = Math.max(0.5, 1.0 - ((currentLevel - 1) * 0.10));
+        const maxDynamicRadius = ((window.innerWidth || 1920) * 0.08) / levelZoomOffset;
         this.radius = Math.min(
             maxDynamicRadius,
             CONFIG.HEAD_RADIUS + (this.length * CONFIG.GROWTH_SCALE)
@@ -186,11 +190,14 @@ export class Snake {
         } else if (foodOrb.isDrop) {
             // Player ate another snake's dropped segment
             if (this.isPlayer) {
-                audioManager.playSFX('eat_body');
+                audioManager.playSFX('eat', 0.5);
+            } else if (foodOrb.fromPlayer) {
+                // A bot snake ate a segment that just dropped from the player's body
+                audioManager.playSFX('enemy_eat');
             }
         } else {
             // Standard food
-            // if (this.isPlayer) audioManager.playSFX('eat');
+            if (this.isPlayer) audioManager.playSFX('eat', 0.5);
         }
 
         // We don't push a new segment immediately.

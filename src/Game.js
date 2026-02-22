@@ -3,6 +3,7 @@ import { Snake } from './Snake.js';
 import { Food, Star, Shield, Magnet } from './Food.js';
 import { checkCollisions } from './Collision.js';
 import { AI } from './AI.js';
+import { audioManager } from './Audio.js';
 
 const randomName = () => {
     const names = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Serpent', 'Fang', 'Venom', 'Viper', 'Slither', 'Python', 'Boa', 'Cobra'];
@@ -73,6 +74,9 @@ export class Game {
         // Show mobile boost button if it exists
         const mobBtn = document.getElementById('btn-boost-mobile');
         if (mobBtn) mobBtn.classList.remove('hidden');
+
+        // Start BGM
+        audioManager.playBGM('game');
 
         if (!this.animationFrameId) {
             this.loop();
@@ -210,7 +214,7 @@ export class Game {
         // Update player
         if (this.player && this.player.alive) {
             const targetAngle = this.input.getAngle();
-            this.player.update(dt, targetAngle, this.input.isBoosting);
+            this.player.update(dt, targetAngle, this.input.isBoosting, this.level);
 
             this.hud.updateScore(this.player.score);
             this.hud.updateBoostPrompt(this.player.length >= CONFIG.MIN_BOOST_LENGTH);
@@ -219,6 +223,13 @@ export class Game {
             const nextLevelThreshold = this.level * this.level * 2500;
             if (this.player.length >= nextLevelThreshold) {
                 this.triggerLevelUp(this.level + 1);
+            }
+
+            // Powerup Music Speedup
+            if (this.player.superTime > 0 || this.player.shieldTime > 0) {
+                audioManager.setBGMPlaybackRate(1.15); // 15% faster/higher pitch
+            } else {
+                audioManager.setBGMPlaybackRate(1.0);
             }
         }
 

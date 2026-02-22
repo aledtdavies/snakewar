@@ -12,6 +12,7 @@ export class AudioManager {
             'eat': 'assets/sfx_eat.mp3',
             'eat_snake': 'assets/sfx_eat_snake.mp3',
             'eat_body': 'assets/sfx_eat_body.mp3',
+            'enemy_eat': 'assets/sfx_enemy_eat.mp3',
             'star': 'assets/sfx_star.mp3',
             'shield': 'assets/sfx_shield.mp3',
             'magnet': 'assets/sfx_magnet.mp3',
@@ -32,12 +33,12 @@ export class AudioManager {
         }
     }
 
-    playSFX(key) {
+    playSFX(key, volumeScale = 1.0) {
         const sound = this.sounds[key];
         if (sound) {
             // Clone node to allow overlapping identical sounds (e.g. eating rapidly)
             const clone = sound.cloneNode();
-            clone.volume = this.sfxVolume;
+            clone.volume = Math.max(0, Math.min(1, this.sfxVolume * volumeScale));
 
             // Play is a promise; we catch errors because browsers block audio before user clicks the page,
             // or if the file doesn't exist yet.
@@ -48,7 +49,27 @@ export class AudioManager {
     }
 
     playBGM(key) {
-        // We will implement BGM loop logic here later.
+        // Stop any currently playing BGM
+        if (this.currentBGM) {
+            this.currentBGM.pause();
+            this.currentBGM.currentTime = 0;
+        }
+
+        const sound = this.sounds[key];
+        if (sound) {
+            sound.loop = true;
+            sound.volume = this.musicVolume;
+            sound.play().catch(e => {
+                // Silently drop errors for blocked autoplay
+            });
+            this.currentBGM = sound;
+        }
+    }
+
+    setBGMPlaybackRate(rate) {
+        if (this.currentBGM) {
+            this.currentBGM.playbackRate = rate;
+        }
     }
 
     setSFXVolume(vol) {
@@ -57,7 +78,9 @@ export class AudioManager {
 
     setMusicVolume(vol) {
         this.musicVolume = Math.max(0, Math.min(1, vol));
-        // Update any currently playing music loops here in the future
+        if (this.currentBGM) {
+            this.currentBGM.volume = this.musicVolume;
+        }
     }
 }
 

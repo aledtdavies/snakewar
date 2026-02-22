@@ -64,13 +64,13 @@ export function checkCollisions(game) {
                 if (s1Super) {
                     // S1 is super, slices through S2
                     if (!s2Shield) {
-                        if (s1.isPlayer && !snakesToKill.has(s2)) { game.playerKills++; audioManager.playSFX('eat_snake'); }
+                        if (s1.isPlayer && !snakesToKill.has(s2)) { game.playerKills++; s2.killedByPlayer = true; }
                         snakesToKill.add(s2);
                     }
                 } else if (s2Super) {
                     // S2 is super, slices through S1
                     if (!s1Shield) {
-                        if (s2.isPlayer && !snakesToKill.has(s1)) { game.playerKills++; audioManager.playSFX('eat_snake'); }
+                        if (s2.isPlayer && !snakesToKill.has(s1)) { game.playerKills++; s1.killedByPlayer = true; }
                         snakesToKill.add(s1);
                     }
                 } else if (s1Shield || s2Shield) {
@@ -82,10 +82,10 @@ export function checkCollisions(game) {
                         snakesToKill.add(s1);
                         snakesToKill.add(s2);
                     } else if (s1.length < s2.length) {
-                        if (s2.isPlayer && !snakesToKill.has(s1)) { game.playerKills++; audioManager.playSFX('eat_snake'); }
+                        if (s2.isPlayer && !snakesToKill.has(s1)) { game.playerKills++; s1.killedByPlayer = true; }
                         snakesToKill.add(s1);
                     } else {
-                        if (s1.isPlayer && !snakesToKill.has(s2)) { game.playerKills++; audioManager.playSFX('eat_snake'); }
+                        if (s1.isPlayer && !snakesToKill.has(s2)) { game.playerKills++; s2.killedByPlayer = true; }
                         snakesToKill.add(s2);
                     }
                 }
@@ -138,7 +138,7 @@ export function checkCollisions(game) {
                 } else if (!s1Super && s1.length <= s2.length) {
                     // Normal rules: s1 is smaller or equal -> s1 dies
                     if (!s1Shield) {
-                        if (s2.isPlayer && !snakesToKill.has(s1)) { game.playerKills++; audioManager.playSFX('eat_snake'); }
+                        if (s2.isPlayer && !snakesToKill.has(s1)) { game.playerKills++; s1.killedByPlayer = true; }
                         snakesToKill.add(s1);
                     }
                 } else {
@@ -153,17 +153,19 @@ export function checkCollisions(game) {
                         severedSegments.forEach(seg => {
                             const scatterX = (Math.random() - 0.5) * 20;
                             const scatterY = (Math.random() - 0.5) * 20;
-                            game.food.push(new Food(seg.x + scatterX, seg.y + scatterY, 2, true));
+
+                            // Mark the food so we know if it came from the player
+                            const droppedFood = new Food(seg.x + scatterX, seg.y + scatterY, 2, true);
+                            if (s2.isPlayer) {
+                                droppedFood.fromPlayer = true;
+                            }
+                            game.food.push(droppedFood);
                         });
 
                         // Add some immediate score score to the attacking snake (s1)
                         s1.score += severedSegments.length * 2;
                         s1.targetLength += severedSegments.length * 2;
                         s1.length = Math.floor(s1.targetLength);
-
-                        if (s1.isPlayer) {
-                            audioManager.playSFX('eat_snake');
-                        }
                     }
                 }
             }
@@ -171,5 +173,17 @@ export function checkCollisions(game) {
     }
 
     // Apply deaths
-    snakesToKill.forEach(snake => game.killSnake(snake));
+    let playerKilledSnake = false;
+
+    snakesToKill.forEach(snake => {
+        if (snake.killedByPlayer) {
+            playerKilledSnake = true;
+        }
+        game.killSnake(snake);
+    });
+
+    // Play the full eaten sound exactly once per collision frame if player successfully killed a snake
+    if (playerKilledSnake) {
+        audioManager.playSFX('eat_snake', 0.8);
+    }
 }

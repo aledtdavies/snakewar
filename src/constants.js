@@ -20,7 +20,7 @@ export const CONFIG = {
     // Growth & Food
     INITIAL_LENGTH: 20,
     FOOD_VALUE: 1,             // Growth per standard food orb
-    GROWTH_SCALE: 0.075,       // How much radius increases per unit of length
+    GROWTH_SCALE: 0.02,        // How much radius increases per unit of length
 
     // Economy / Boost
     BOOST_COST_RATE: 2.5,      // Length lost per second while boosting

@@ -60,7 +60,12 @@ export class Renderer {
         }
 
         // Calculate zoom and view bounds
-        const zoom = this.width < 900 ? 0.8 : 1.0;
+        // Base zoom is 1.0 (or 0.8 for small screens)
+        // Zoom out by an additional 10% per level up (i.e Level 2 = 0.9x, Level 3 = 0.8x)
+        const baseZoom = this.width < 900 ? 0.8 : 1.0;
+        const levelZoomOffset = Math.max(0.5, 1.0 - ((game.level - 1) * 0.10));
+        const zoom = baseZoom * levelZoomOffset;
+
         const cullDistX = this.cx / zoom + 50;
         const cullDistY = this.cy / zoom + 50;
 

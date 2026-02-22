@@ -69,7 +69,7 @@ export class AI {
         }
 
         // Apply inputs to snake
-        this.snake.update(dt, desiredAngle, this.snake.isBoosting);
+        this.snake.update(dt, desiredAngle, this.snake.isBoosting, game.level);
     }
 
     _decideStrategy(snakes, foods) {

@@ -1,0 +1,16 @@
+# Required Sound Assets
+
+Currently requested and assigned audio files that need to be in the `assets/` folder:
+
+- `sfx_eat.mp3`
+- `sfx_eat_snake.mp3`
+- `sfx_eat_body.mp3`
+- `sfx_enemy_eat.mp3`
+- `sfx_star.mp3`
+- `sfx_shield.mp3`
+- `sfx_magnet.mp3`
+- `sfx_game_over.mp3`
+- `sfx_level_complete.mp3`
+
+- `bgm_title.mp3`
+- `bgm_game.mp3`
