@@ -20,10 +20,11 @@ export function checkCollisions(game) {
 
             const dx = mouthX - f.x;
             const dy = mouthY - f.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+            const distSq = dx * dx + dy * dy;
+            const hitRadius = snake.radius + f.radius;
 
             // If distance < snake head radius + food radius
-            if (dist < snake.radius + f.radius) {
+            if (distSq < hitRadius * hitRadius) {
                 snake.eat(f);
                 f.markedForDeletion = true;
             }
@@ -52,10 +53,11 @@ export function checkCollisions(game) {
 
             const dx = s1MouthX - s2MouthX;
             const dy = s1MouthY - s2MouthY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+            const distSq = dx * dx + dy * dy;
+            const hitRadius = s1.radius + s2.radius;
 
             // Head-on collision
-            if (dist < s1.radius + s2.radius) {
+            if (distSq < hitRadius * hitRadius) {
                 const s1Super = s1.superTime > 0;
                 const s2Super = s2.superTime > 0;
                 const s1Shield = s1.shieldTime > 0;
@@ -105,9 +107,10 @@ export function checkCollisions(game) {
                 const seg = s2.segments[k];
                 const sdx = seg.x - hitS1MouthX; // Vector from mouth to segment
                 const sdy = seg.y - hitS1MouthY;
-                const sdist = Math.sqrt(sdx * sdx + sdy * sdy);
+                const sdistSq = sdx * sdx + sdy * sdy;
+                const hitRadius = s1.radius + CONFIG.BODY_RADIUS;
 
-                if (sdist < s1.radius + CONFIG.BODY_RADIUS) {
+                if (sdistSq < hitRadius * hitRadius) {
                     // Check if segment is in front of the snake's current face vector
                     const faceAngle = s1.angle;
                     const angleToSeg = Math.atan2(sdy, sdx);

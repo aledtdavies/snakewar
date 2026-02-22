@@ -131,6 +131,8 @@ export class Renderer {
                     ctx.restore();
                     continue;
                 }
+                // Fallback geometry if image is not loaded
+                ctx.arc(f.x, f.y, f.radius * 1.5 + pulse, 0, Math.PI * 2);
             } else {
                 ctx.arc(f.x, f.y, f.radius + (f.isDrop ? pulse : 0), 0, Math.PI * 2);
             }
@@ -201,7 +203,8 @@ export class Renderer {
                 const seg = snake.segments[i];
 
                 // Culling: Skip drawing off-screen segments entirely
-                const cullMargin = snake.radius * 3;
+                // Using a larger margin to prevent segment popping at screen edges
+                const cullMargin = snake.radius * 5 + 150;
                 if (seg.x < camX - cullDistX - cullMargin || seg.x > camX + cullDistX + cullMargin ||
                     seg.y < camY - cullDistY - cullMargin || seg.y > camY + cullDistY + cullMargin) {
                     continue;
@@ -218,11 +221,7 @@ export class Renderer {
                     angle = Math.atan2(prevSeq.y - seg.y, prevSeq.x - seg.x);
                 }
 
-                // Shimmer effect based on time and segment index
-                const shimmer = Math.sin((performance.now() / 300) + i * 0.2);
-
                 const primaryColor = snake.skin.body1;
-                const secondaryColor = snake.skin.body2;
 
                 ctx.save();
                 ctx.translate(seg.x, seg.y);

@@ -243,14 +243,18 @@ export class Game {
         this.bots.forEach(bot => bot.update(dt, this, this.snakes, this.food));
 
         // Generate boost particles & cleanup dead entities
-        this.snakes = this.snakes.filter(s => {
-            if (!s.alive) return false;
+        for (let i = this.snakes.length - 1; i >= 0; i--) {
+            const s = this.snakes[i];
+            if (!s.alive) {
+                this.snakes.splice(i, 1);
+                continue;
+            }
 
             // Boost particles
             if (s.isBoosting && s.segments.length > 0) {
                 // Emit 2-3 particles per frame from the tail
                 const tail = s.segments[s.segments.length - 1];
-                for (let i = 0; i < 2; i++) {
+                for (let j = 0; j < 2; j++) {
                     // Slight spread
                     const angleOff = s.angle + Math.PI + (Math.random() - 0.5);
                     const speed = 20 + Math.random() * 50;
@@ -266,22 +270,33 @@ export class Game {
                     });
                 }
             }
-            return true;
-        });
+        }
 
-        this.bots = this.bots.filter(b => b.snake.alive);
+        for (let i = this.bots.length - 1; i >= 0; i--) {
+            if (!this.bots[i].snake.alive) {
+                this.bots.splice(i, 1);
+            }
+        }
 
         // Update food (lifespans)
-        this.food.forEach(f => f.update(dt));
-        this.food = this.food.filter(f => !f.markedForDeletion);
+        for (let i = this.food.length - 1; i >= 0; i--) {
+            const f = this.food[i];
+            f.update(dt);
+            if (f.markedForDeletion) {
+                this.food.splice(i, 1);
+            }
+        }
 
         // Update particles
-        this.particles.forEach(p => {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
             p.x += p.vx * dt;
             p.y += p.vy * dt;
             p.life -= dt;
-        });
-        this.particles = this.particles.filter(p => p.life > 0);
+            if (p.life <= 0) {
+                this.particles.splice(i, 1);
+            }
+        }
 
         // Replenish natural food
         if (Math.random() < 0.1) { // 10% chance per frame to spawn food if under limit
