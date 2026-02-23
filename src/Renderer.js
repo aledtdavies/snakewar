@@ -269,16 +269,30 @@ export class Renderer {
 
                 ctx.closePath();
 
-                // High transparency shading fill
-                ctx.globalAlpha = snake.isBoosting ? 0.4 : 0.15;
-                ctx.fillStyle = primaryColor;
+                // High transparency shading fill (unless star powerup is active)
+                if (snake.superTime > 0) {
+                    // Flash effect for Star powerup
+                    const flash = (Math.sin(performance.now() / 50 + i * 0.1) + 1) / 2; // 0 to 1
+                    ctx.globalAlpha = 0.4 + flash * 0.6;
+                    ctx.fillStyle = '#ffffff'; // Flash white
+                } else {
+                    ctx.globalAlpha = snake.isBoosting ? 0.4 : 0.15;
+                    ctx.fillStyle = primaryColor;
+                }
                 ctx.fill();
 
                 // Bright glowing outline
-                ctx.globalAlpha = snake.isBoosting ? 1.0 : 0.8;
-                ctx.strokeStyle = primaryColor;
+                if (snake.superTime > 0) {
+                    ctx.globalAlpha = 1.0;
+                    ctx.strokeStyle = '#ffff00'; // Gold outline
+                } else {
+                    ctx.globalAlpha = snake.isBoosting ? 1.0 : 0.8;
+                    ctx.strokeStyle = primaryColor;
+                }
                 ctx.lineWidth = 2.0; // Thicker lines
                 ctx.stroke();
+
+                // Possibly emit sparkles for Star powerup (handled in Game.js, but we can do it visually here if we want, or rely on Game.js particle system. Since it's purely visual, we can just draw them instantly or let Game.js handle it. Better to let Game.js handle the particle logic, we'll add that to Game.js next)
 
                 ctx.restore();
             }
@@ -297,17 +311,21 @@ export class Renderer {
                 const hw = snake.radius * 3.7; // Decreased to 80% of 4.6
                 const hh = snake.radius * 3.7;
 
-                // Adjust brightness based on boost (head is very bright)
-                const boostAlpha = snake.isBoosting ? 1.0 : 0.9;
+                // Adjust brightness based on boost or super
+                let boostAlpha = snake.isBoosting ? 1.0 : 0.9;
+                if (snake.superTime > 0) {
+                    const headFlash = (Math.sin(performance.now() / 30) + 1) / 2;
+                    boostAlpha = 0.8 + headFlash * 0.2; // Flash head slightly
+                }
                 ctx.globalAlpha = boostAlpha;
 
                 // Offset so the back aligns perfectly with the neck
                 ctx.drawImage(activeHead, -hw * 0.20, -hh * 0.5, hw, hh);
 
-                // Boost glow
-                if (snake.isBoosting) {
-                    ctx.shadowColor = snake.skin.body1;
-                    ctx.shadowBlur = 25;
+                // Boost or Star glow
+                if (snake.isBoosting || snake.superTime > 0) {
+                    ctx.shadowColor = snake.superTime > 0 ? '#ffff00' : snake.skin.body1;
+                    ctx.shadowBlur = snake.superTime > 0 ? 35 : 25;
                     ctx.beginPath();
                     ctx.arc(0, 0, snake.radius, 0, Math.PI * 2);
                     ctx.fillStyle = 'transparent';
@@ -361,12 +379,38 @@ export class Renderer {
             ctx.restore();
             ctx.globalAlpha = 1.0; // Reset for nameplate
 
+            // Draw Power-up Timers
+            const activeTimers = [];
+            if (snake.superTime > 0) activeTimers.push({ time: snake.superTime, color: '#ffff00' }); // Star
+            if (snake.shieldTime > 0) activeTimers.push({ time: snake.shieldTime, color: '#00f0ff' }); // Shield
+            if (snake.magnetTime > 0) activeTimers.push({ time: snake.magnetTime, color: '#ff00aa' }); // Magnet
+
+            if (activeTimers.length > 0) {
+                ctx.font = 'bold 16px Inter';
+                ctx.textAlign = 'center';
+
+                // Stack timers above the head (or nameplate)
+                let timerOffsetY = snake.isPlayer ? snake.y - snake.radius - 20 : snake.y - snake.radius - 25; // slightly higher if nameplate exists
+
+                activeTimers.forEach((timer) => {
+                    ctx.fillStyle = timer.color;
+                    ctx.globalAlpha = 0.85; // Mostly transparent
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 4;
+                    // Format to 1 decimal place
+                    ctx.fillText(`${timer.time.toFixed(1)}s`, snake.x, timerOffsetY);
+                    ctx.shadowBlur = 0; // Reset
+                    timerOffsetY -= 20; // Stack vertically upwards
+                });
+                ctx.globalAlpha = 1.0;
+            }
+
             // Draw Nameplate (only for bots/others, player knows who they are)
             if (!snake.isPlayer) {
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
                 ctx.font = '12px Inter';
                 ctx.textAlign = 'center';
-                ctx.fillText(snake.name, snake.x, snake.y - snake.radius - 10);
+                ctx.fillText(snake.name, snake.x, snake.y - snake.radius - 5);
             }
         }
 
@@ -388,33 +432,62 @@ export class Renderer {
 
         mctx.clearRect(0, 0, minimap.width, minimap.height);
 
-        // Draw arena bounds on minimap
+        // Radar properties: Shows a 3000x3000 area around the camera
+        const radarRange = 3000;
+        const scale = minimap.width / radarRange;
+        const mcx = minimap.width / 2;
+        const mcy = minimap.height / 2;
+
+        // Draw minimap background (circular radar style)
+        mctx.fillStyle = 'rgba(10, 10, 20, 0.5)';
+        mctx.beginPath();
+        mctx.arc(mcx, mcy, minimap.width / 2, 0, Math.PI * 2);
+        mctx.fill();
+
+        // Save context and clip to radar circle
+        mctx.save();
+        mctx.beginPath();
+        mctx.arc(mcx, mcy, minimap.width / 2, 0, Math.PI * 2);
+        mctx.clip();
+
+        // Draw arena bounds relative to camera
+        const ax = mcx + (0 - camX) * scale;
+        const ay = mcy + (0 - camY) * scale;
+        const aw = CONFIG.ARENA_SIZE * scale;
+        const ah = CONFIG.ARENA_SIZE * scale;
         mctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
-        mctx.lineWidth = 1;
-        mctx.strokeRect(10, 10, minimap.width - 20, minimap.height - 20);
+        mctx.lineWidth = 2;
+        mctx.strokeRect(ax, ay, aw, ah);
 
-        const scale = (minimap.width - 20) / CONFIG.ARENA_SIZE;
-
-        // Draw snakes as dots
+        // Draw snakes as dots within radar
         game.snakes.forEach(snake => {
             if (!snake.alive) return;
 
-            const mx = 10 + (snake.x * scale);
-            const my = 10 + (snake.y * scale);
+            const mx = mcx + (snake.x - camX) * scale;
+            const my = mcy + (snake.y - camY) * scale;
 
-            mctx.fillStyle = snake.isPlayer ? snake.skin.body1 : '#ff3333';
-            mctx.beginPath();
-            mctx.arc(mx, my, snake.isPlayer ? 3 : 2, 0, Math.PI * 2);
-            mctx.fill();
+            // Only draw if roughly within radar range
+            if (Math.hypot(mx - mcx, my - mcy) <= minimap.width / 2) {
+                mctx.fillStyle = snake.isPlayer ? snake.skin.body1 : '#ff3333';
+                mctx.beginPath();
+                mctx.arc(mx, my, snake.isPlayer ? 3 : 2, 0, Math.PI * 2);
+                mctx.fill();
+            }
         });
 
-        // Draw camera viewport box
+        // Draw player view box (optional, maybe just the center dot is fine)
         const viewW = this.width * scale;
         const viewH = this.height * scale;
-        const vx = 10 + (camX * scale) - (viewW / 2);
-        const vy = 10 + (camY * scale) - (viewH / 2);
-
         mctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        mctx.strokeRect(vx, vy, viewW, viewH);
+        mctx.strokeRect(mcx - viewW / 2, mcy - viewH / 2, viewW, viewH);
+
+        mctx.restore(); // remove clip
+
+        // Draw radar outline
+        mctx.strokeStyle = 'rgba(100, 100, 100, 0.8)';
+        mctx.lineWidth = 1;
+        mctx.beginPath();
+        mctx.arc(mcx, mcy, minimap.width / 2, 0, Math.PI * 2);
+        mctx.stroke();
     }
 }

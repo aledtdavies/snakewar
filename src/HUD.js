@@ -7,6 +7,8 @@ export class HUD {
         this.menuScreen = document.getElementById('main-menu');
         this.gameOverScreen = document.getElementById('game-over-screen');
         this.levelUpScreen = document.getElementById('level-up-screen');
+        this.pauseScreen = document.getElementById('pause-screen');
+        this.tutorialScreen = document.getElementById('tutorial-screen');
         this.hudLayer = document.getElementById('hud');
 
         // Game Over stats
@@ -18,13 +20,37 @@ export class HUD {
     hideAllScreens() {
         this.menuScreen.classList.add('hidden');
         this.gameOverScreen.classList.add('hidden');
+        this.tutorialScreen.classList.add('hidden');
         this.hudLayer.classList.remove('hidden');
     }
 
     showMenu() {
         this.menuScreen.classList.remove('hidden');
         this.gameOverScreen.classList.add('hidden');
+        this.pauseScreen.classList.add('hidden');
         this.hudLayer.classList.add('hidden');
+    }
+
+    showPause() {
+        this.pauseScreen.classList.remove('hidden');
+    }
+
+    hidePause() {
+        this.pauseScreen.classList.add('hidden');
+    }
+
+    showTutorial(onComplete) {
+        this.tutorialScreen.classList.remove('hidden');
+        const btn = document.getElementById('btn-tutorial-ok');
+
+        // Unbind previous by cloning first
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+
+        newBtn.addEventListener('click', () => {
+            this.tutorialScreen.classList.add('hidden');
+            if (onComplete) onComplete();
+        });
     }
 
     showGameOver(score, kills, timeSeconds, playerName) {

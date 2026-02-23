@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('game-canvas');
     const btnPlay = document.getElementById('btn-play');
     const btnPlayAgain = document.getElementById('btn-play-again');
+    const btnResume = document.getElementById('btn-resume');
+    const btnPauseMobile = document.getElementById('btn-pause-mobile');
     const inputName = document.getElementById('player-name');
     const skinOptions = document.querySelectorAll('.skin-option');
 
@@ -68,6 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Game engine
     const game = new Game(input, renderer, hud);
 
+    // Wire up pause input to game engine
+    input.onPauseToggle = () => game.togglePause();
+
     let selectedSkin = 'neon-cyan';
 
     // Skin selection logic
@@ -93,6 +98,18 @@ document.addEventListener('DOMContentLoaded', () => {
         loadGlobalLeaderboard(); // Update in case score was saved
         startGame();
     });
+
+    // Resume button from pause screen
+    btnResume.addEventListener('click', () => {
+        game.togglePause();
+    });
+
+    // Mobile pause button
+    if (btnPauseMobile) {
+        btnPauseMobile.addEventListener('click', () => {
+            game.togglePause();
+        });
+    }
 
     // Allow pressing Enter in name input to start game
     inputName.addEventListener('keypress', (e) => {

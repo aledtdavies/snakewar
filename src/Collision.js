@@ -130,6 +130,7 @@ export function checkCollisions(game) {
                 const s1Super = s1.superTime > 0;
                 const s2Super = s2.superTime > 0;
                 const s1Shield = s1.shieldTime > 0;
+                const s2Shield = s2.shieldTime > 0;
 
                 // If s1 (head) hits s2's body
                 if (s2Super && !s1Super) {
@@ -147,28 +148,33 @@ export function checkCollisions(game) {
                 } else {
                     // s1 is larger OR s1 is super -> s1 "bites" s2 in half at hitSegmentIndex
                     // s2 loses segments from hitSegmentIndex to the end
-                    if (hitSegmentIndex > 0 && hitSegmentIndex < s2.segments.length) {
-                        const severedSegments = s2.segments.splice(hitSegmentIndex);
-                        s2.length = s2.segments.length; // Update s2's length target
-                        s2.targetLength = s2.length;
+                    if (!s2Shield) {
+                        if (hitSegmentIndex > 0 && hitSegmentIndex < s2.segments.length) {
+                            const severedSegments = s2.segments.splice(hitSegmentIndex);
+                            s2.length = s2.segments.length; // Update s2's length target
+                            s2.targetLength = s2.length;
 
-                        // Drop severed segments as food immediately
-                        severedSegments.forEach(seg => {
-                            const scatterX = (Math.random() - 0.5) * 20;
-                            const scatterY = (Math.random() - 0.5) * 20;
+                            // Drop severed segments as food immediately
+                            severedSegments.forEach(seg => {
+                                const scatterX = (Math.random() - 0.5) * 20;
+                                const scatterY = (Math.random() - 0.5) * 20;
 
-                            // Mark the food so we know if it came from the player
-                            const droppedFood = new Food(seg.x + scatterX, seg.y + scatterY, 2, true);
-                            if (s2.isPlayer) {
-                                droppedFood.fromPlayer = true;
-                            }
-                            game.food.push(droppedFood);
-                        });
+                                // Mark the food so we know if it came from the player
+                                const droppedFood = new Food(seg.x + scatterX, seg.y + scatterY, 2, true);
+                                if (s2.isPlayer) {
+                                    droppedFood.fromPlayer = true;
+                                }
+                                game.food.push(droppedFood);
+                            });
 
-                        // Add some immediate score score to the attacking snake (s1)
-                        s1.score += severedSegments.length * 2;
-                        s1.targetLength += severedSegments.length * 2;
-                        s1.length = Math.floor(s1.targetLength);
+                            // Add some immediate score score to the attacking snake (s1)
+                            s1.score += severedSegments.length * 2;
+                            s1.targetLength += severedSegments.length * 2;
+                            s1.length = Math.floor(s1.targetLength);
+                        }
+                    } else {
+                        // S2 has a shield! S1 bounces off harmlessly.
+                        s1.angle += Math.PI;
                     }
                 }
             }

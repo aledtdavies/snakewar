@@ -5,6 +5,9 @@ export class Input {
         this.mouseY = window.innerHeight / 2;
         this.isBoosting = false;
 
+        // Callback for when pause is pressed
+        this.onPauseToggle = null;
+
         // Binding context so we can remove listeners if needed later
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -75,6 +78,11 @@ export class Input {
     handleKeyDown(e) {
         if (e.code === 'Space') {
             this.isBoosting = true;
+        }
+        if (e.code === 'KeyP' || e.code === 'Escape') {
+            if (this.onPauseToggle) {
+                this.onPauseToggle();
+            }
         }
     }
 

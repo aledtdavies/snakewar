@@ -71,16 +71,14 @@ export class Snake {
         // We DIVIDE by the current zoom factor (based on level) so the physical on-screen size 
         // respects the zoomed-out camera instead of growing larger to compensate!
         const levelZoomOffset = Math.max(0.5, 1.0 - ((currentLevel - 1) * 0.10));
-        const maxDynamicRadius = ((window.innerWidth || 1920) * 0.08) / levelZoomOffset;
+        const baseWidth = Math.min(window.innerWidth || 1920, 1200);
+        const maxDynamicRadius = (baseWidth * 0.06) / levelZoomOffset;
         this.radius = Math.min(
             maxDynamicRadius,
             CONFIG.HEAD_RADIUS + (this.length * CONFIG.GROWTH_SCALE)
         );
 
-        // Super mode makes head/body much larger and flashing
-        if (this.superTime > 0) {
-            this.radius += 5 + Math.sin(performance.now() / 100) * 3;
-        }
+        // Star mode does not increase radius anymore
 
         // Handle Boost
         this.isBoosting = isBoosting && this.length > CONFIG.MIN_BOOST_LENGTH;

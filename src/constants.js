@@ -19,7 +19,7 @@ export const CONFIG = {
 
     // Growth & Food
     INITIAL_LENGTH: 20,
-    FOOD_VALUE: 1,             // Growth per standard food orb
+    FOOD_VALUE: 1 / 3,           // Growth per standard food orb
     GROWTH_SCALE: 0.02,        // How much radius increases per unit of length
 
     // Economy / Boost
@@ -28,7 +28,7 @@ export const CONFIG = {
 
     // Entities
     MAX_FOOD_ORBS: 400,
-    BOT_COUNT: 25,
+    BOT_COUNT: 10,
     MAX_STARS: 2,
     MAX_SHIELDS: 3,
     MAX_MAGNETS: 3,

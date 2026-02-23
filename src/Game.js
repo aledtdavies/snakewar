@@ -22,7 +22,7 @@ export class Game {
         this.particles = [];
 
         this.player = null;
-        this.state = 'MENU'; // MENU, PLAYING, GAME_OVER, LEVEL_UP
+        this.state = 'MENU'; // MENU, TUTORIAL, PLAYING, GAME_OVER, LEVEL_UP, PAUSED
         this.level = 1;
 
         this.lastTime = performance.now();
@@ -65,9 +65,6 @@ export class Game {
         // Spawn Bots
         this._spawnBots(CONFIG.BOT_COUNT);
 
-        this.state = 'PLAYING';
-        this.lastTime = performance.now();
-
         // Update HUD initially
         this.hud.updateScore(this.player.length);
 
@@ -77,6 +74,19 @@ export class Game {
 
         // Start BGM
         audioManager.playBGM('game');
+        this.hud.hideAllScreens();
+
+        if (!this.hasSeenTutorial) {
+            this.state = 'TUTORIAL';
+            this.hud.showTutorial(() => {
+                this.hasSeenTutorial = true;
+                this.state = 'PLAYING';
+                this.lastTime = performance.now();
+            });
+        } else {
+            this.state = 'PLAYING';
+            this.lastTime = performance.now();
+        }
 
         if (!this.animationFrameId) {
             this.loop();
@@ -92,7 +102,7 @@ export class Game {
             do {
                 bx = Math.random() * CONFIG.ARENA_SIZE;
                 by = Math.random() * CONFIG.ARENA_SIZE;
-            } while (this.player && Math.abs(bx - this.player.x) < 500 && Math.abs(by - this.player.y) < 500);
+            } while (this.player && Math.hypot(bx - this.player.x, by - this.player.y) < 1500);
 
             const botSnake = new Snake(bx, by, false, randomName(), skins[Math.floor(Math.random() * skins.length)]);
 
@@ -144,17 +154,17 @@ export class Game {
 
         const rand = Math.random();
 
-        // Very rare Star spawn (0.5%)
-        if (rand < 0.005 && numStars < CONFIG.MAX_STARS) {
+        // Very rare Star spawn (0.2%)
+        if (rand < 0.002 && numStars < CONFIG.MAX_STARS) {
             this.food.push(new Star(Math.random() * CONFIG.ARENA_SIZE, Math.random() * CONFIG.ARENA_SIZE));
         }
-        // 1.5% chance for Shield
-        else if (rand >= 0.005 && rand < 0.02 && numShields < CONFIG.MAX_SHIELDS) {
-            this.food.push(new Shield(Math.random() * CONFIG.ARENA_SIZE, Math.random() * CONFIG.ARENA_SIZE));
-        }
-        // 1.5% chance for Magnet
-        else if (rand >= 0.02 && rand < 0.035 && numMagnets < CONFIG.MAX_MAGNETS) {
+        // 0.3% chance for Magnet
+        else if (rand >= 0.002 && rand < 0.005 && numMagnets < CONFIG.MAX_MAGNETS) {
             this.food.push(new Magnet(Math.random() * CONFIG.ARENA_SIZE, Math.random() * CONFIG.ARENA_SIZE));
+        }
+        // 3.0% chance for Shield (common relative to others)
+        else if (rand >= 0.005 && rand < 0.035 && numShields < CONFIG.MAX_SHIELDS) {
+            this.food.push(new Shield(Math.random() * CONFIG.ARENA_SIZE, Math.random() * CONFIG.ARENA_SIZE));
         }
 
         // Standard food
@@ -212,6 +222,18 @@ export class Game {
         }, 500);
     }
 
+    togglePause() {
+        if (this.state === 'PLAYING') {
+            this.state = 'PAUSED';
+            this.hud.showPause();
+        } else if (this.state === 'PAUSED') {
+            this.state = 'PLAYING';
+            this.hud.hidePause();
+            // Important: Reset lastTime so we don't calculate massive dt delta from the elapsed pause time
+            this.lastTime = performance.now();
+        }
+    }
+
     update(dt) {
         if (this.state !== 'PLAYING') return;
 
@@ -267,6 +289,32 @@ export class Game {
                         maxLife: 1.0,
                         color: s.skin.body1,
                         size: 2 + Math.random() * 3
+                    });
+                }
+            }
+
+            // Star Sparkle particles
+            if (s.superTime > 0) {
+                // Emit sparkles from random body segments
+                const emitCount = Math.floor(Math.random() * 3) + 1; // 1-3 sparkles per frame
+                for (let j = 0; j < emitCount; j++) {
+                    // Choose head (0) or a random segment
+                    const targetIdx = Math.random() < 0.2 ? 0 : Math.floor(Math.random() * s.segments.length);
+                    const source = targetIdx === 0 ? s : s.segments[targetIdx];
+                    if (!source) continue;
+
+                    // Explode outwards in random directions
+                    const angleOff = Math.random() * Math.PI * 2;
+                    const speed = 10 + Math.random() * 30; // Float gently
+                    this.particles.push({
+                        x: source.x + (Math.random() - 0.5) * s.radius * 2,
+                        y: source.y + (Math.random() - 0.5) * s.radius * 2,
+                        vx: Math.cos(angleOff) * speed,
+                        vy: Math.sin(angleOff) * speed,
+                        life: 0.3 + Math.random() * 0.4, // Short-lived sparkles
+                        maxLife: 0.7,
+                        color: Math.random() > 0.5 ? '#ffffff' : '#ffff00', // White or Gold
+                        size: 1.5 + Math.random() * 2.5
                     });
                 }
             }
